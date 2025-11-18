@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Protótipo WebGIS - PNMNI</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+         integrity="sha256-p4NxAoJBhpmINi9NdQBimT2CtwJQXE/nUfD/e0bS/aCg="
+         crossorigin=""/>
+         
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlLMg="
+         crossorigin=""></script>
+         
+    <style>
+        body { padding: 0; margin: 0; }
+        #map { height: 100vh; width: 100%; }
+    </style>
+</head>
+<body>
+
+    <div id="map"></div>
+
+    <script>
+        // 5. Inicializa o mapa
+        // Nota: O setView inicial é genérico, pois vamos ajustá-lo ao limite
+        var map = L.map('map').setView([-22.80, -43.48], 12); 
+
+        // 6. Adiciona o mapa de fundo (Base Map)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // --- DADOS DO SEU MAPA ---
+
+        // 7. DADOS DO LIMITE (O GeoJSON que você criou)
+        var limiteData = {
+             "type": "FeatureCollection",
+             "features": [
+               {
+                 "type": "Feature",
+                 "properties": {},
+                 "geometry": {
+                   "coordinates": [
+                     [
+                       [ -43.42852916324969, -22.751863343011564 ],
+                       [ -43.60871300656555, -22.751863343011564 ],
+                       [ -43.60871300656555, -22.871134174832193 ],
+                       [ -43.42852916324969, -22.871134174832193 ],
+                       [ -43.42852916324969, -22.751863343011564 ]
+                     ]
+                   ],
+                   "type": "Polygon"
+                 }
+               }
+             ]
+           };
+        
+        // Estilo do limite
+        var limiteStyle = {
+            "color": "#e60000", // Vermelho
+            "weight": 4,
+            "opacity": 0.65
+        };
+
+        // Adiciona o limite ao mapa e ajusta o zoom para ele
+        var limiteLayer = L.geoJSON(limiteData, { 
+            style: limiteStyle 
+        }).addTo(map);
+        
+        map.fitBounds(limiteLayer.getBounds()); // <-- Isso centraliza e dá zoom no seu polígono
+
+        // 8. DADOS DOS GEOSSÍTIOS (Os pontos que você me passou)
+        // Nota: GeoJSON usa o formato [Longitude, Latitude]
+        var pontosData = {
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "type": "Feature",
+                    "geometry": { "type": "Point", "coordinates": [-43.50923608571131, -22.798426855305] },
+                    "properties": {
+                        "nome": "Vulcão de Nova Iguaçu",
+                        "descricao": "Formação vulcânica principal da região, de grande interesse geológico."
+                    }
+                },
+                {
+                    "type": "Feature",
+                    "geometry": { "type": "Point", "coordinates": [-43.46494745081564, -22.814567411754812] },
+                    "properties": {
+                        "nome": "Cachoeira de Mesquita",
+                        "descricao": "Queda d'água formada em rochas gnáissicas, importante para o geoturismo."
+                    }
+                },
+                {
+                    "type": "Feature",
+                    "geometry": { "type": "Point", "coordinates": [-43.50099633962589, -22.78339226485531] },
+                    "properties": {
+                        "nome": "Rampa de Vôo Livre",
+                        "descricao": "Ponto de observação e decolagem, oferece visão panorâmica da geodiversidade local."
+                    }
+                }
+            ]
+        };
+
+        // 9. Função para criar os Pop-ups
+        function onEachFeature(feature, layer) {
+            if (feature.properties && feature.properties.nome) {
+                var popupContent = "<b>" + feature.properties.nome + "</b>";
+                
+                if (feature.properties.descricao) {
+                    popupContent += "<br>" + feature.properties.descricao;
+                }
+                layer.bindPopup(popupContent);
+            }
+        }
+
+        // Adiciona os pontos ao mapa, usando a função de pop-up
+        L.geoJSON(pontosData, {
+            onEachFeature: onEachFeature
+        }).addTo(map);
+
+    </script>
+
+</body>
+</html>
